@@ -6,8 +6,7 @@ if __name__ == '__main__':
     pygame.init()
     size = width, height = 800, 400
     screen = pygame.display.set_mode(size)
-    # поле 5 на 7
-    board = Board()
+    board = Board()  # Сюда отпралять список карт
     running = True
     while running:
         for event in pygame.event.get():
