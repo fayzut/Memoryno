@@ -7,7 +7,7 @@ STANDART_COLOR = (0, 255, 0)
 
 class Card:
     def __init__(self, data, left=0, top=0, width=50, height=50):
-        self.faced = True
+        self.faced = False
         self.pic = ''
         self.text = data
         self.left = left
@@ -35,6 +35,13 @@ class Card:
     def set_scored(self):
         self.faced = True
         self.text = '+'
+
+    def blink(self):
+        old_color = self.text_color
+        self.text_color = (255, 10, 10)
+        start = pygame.time.Clock()
+        if start.tick(500):
+            self.text_color = old_color
 
 
 class Label:
@@ -157,6 +164,9 @@ class Board:
                 card.set_scored()
                 self.scores += 1
             else:
+                pygame.time.delay(500)
+                card.blink()
+                self.faced_card.blink()
                 card.on_click()
                 self.faced_card.on_click()
             self.faced_card = None
