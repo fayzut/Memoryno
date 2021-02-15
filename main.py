@@ -4,7 +4,7 @@ from field import Board
 
 if __name__ == '__main__':
     pygame.init()
-    size = width, height = 800, 400
+    size = width, height = 600, 400
     screen = pygame.display.set_mode(size)
     board = Board()  # Сюда отпралять список карт
     running = True

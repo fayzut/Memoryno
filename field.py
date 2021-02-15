@@ -2,6 +2,8 @@ import random
 
 import pygame
 
+STANDART_COLOR = (0, 255, 0)
+
 
 class Card:
     def __init__(self, data, left=0, top=0, width=50, height=50):
@@ -13,8 +15,8 @@ class Card:
         self.width = width
         self.height = height
         self.border = 1
-        self.border_color = (0, 255, 0)
-        self.text_color = (0, 255, 0)
+        self.border_color = STANDART_COLOR
+        self.text_color = STANDART_COLOR
         self.text_font = pygame.font.Font(None, 50)
 
     def draw(self, surfase=pygame.display.set_mode((1, 1)), x=0, y=0):
@@ -26,6 +28,36 @@ class Card:
         text_x = x + (self.width - text.get_width()) // 2
         text_y = y + (self.height - text.get_height()) // 2
         surfase.blit(text, (text_x, text_y))
+
+    def on_click(self):
+        self.faced = not self.faced
+
+    def set_scored(self):
+        self.faced = True
+        self.text = '+'
+
+
+class Label:
+    def __init__(self, text, screen, coords, color=STANDART_COLOR, bordered=True,
+                 border_color=STANDART_COLOR):
+        self.text = text
+        self.screen = screen
+        self.coords = coords
+        self.text_color = color
+        self.bordered = bordered
+        self.border_color = border_color
+
+    def draw(self):
+        font = pygame.font.Font(None, 50)
+        text = font.render(self.text, True, self.text_color)
+        text_x = self.coords[0]
+        text_y = self.coords[1]
+        text_w = text.get_width()
+        text_h = text.get_height()
+        self.screen.blit(text, (text_x, text_y))
+        if self.bordered:
+            pygame.draw.rect(self.screen, self.border_color, (text_x - 10, text_y - 10,
+                                                              text_w + 20, text_h + 20), 1)
 
 
 class Board:
@@ -41,7 +73,7 @@ class Board:
         self.cell_border_width = 1
         self.set_view(self.left, self.top, self.cell_width, self.cell_height)
 
-        self.field_line_color = (0, 255, 0)
+        self.field_line_color = STANDART_COLOR
         # Стандартные карточки - числа в массиве
         # генерация поля карточек
         # cards = range(10, 100)  # список карточек для игры - TODO: объекты карточек Card
@@ -61,6 +93,9 @@ class Board:
             for col in range(len(self.field[row])):
                 self.field[row][col] = Card(str(cards_to_add[k]))
                 k += 1
+
+        self.faced_card = None
+        self.scores = 0
 
     # настройка внешнего вида
     def set_view(self, left, top, cell_width, cell_height):
@@ -82,6 +117,11 @@ class Board:
         pygame.draw.rect(screen, (0, 255, 0), (text_x - 10, text_y - 10,
                                                text_w + 20, text_h + 20), 1)
         # КОНЕЦ Надпись на экране игры
+        # Надписи счета
+        scores = Label(f'Счет: {self.scores}', screen, (screen.get_width() - 200, 100))
+        scores.draw()
+        # Конец Надписи счета
+
         for row in range(len(self.field)):
             for col in range(len(self.field[row])):
                 pygame.draw.rect(screen, self.field_line_color,
@@ -96,15 +136,34 @@ class Board:
         # self.need_to_render = False
 
     def get_cell(self, mouse_pos):
-        if self.left <= mouse_pos[0] <= self.cell_width * len(self.field[0]) and \
-                self.top <= mouse_pos[1] <= self.cell_height * len(self.field):
-            pass  # Попали в карту
+        if self.left <= mouse_pos[0] <= self.cell_width * len(self.field[0]) + self.left and \
+                self.top <= mouse_pos[1] <= self.cell_height * len(self.field) + self.top:
+            x = (mouse_pos[0] - self.left) // self.cell_width
+            y = (mouse_pos[1] - self.top) // self.cell_height
+            try:
+                return self.field[y][x]
+            except:
+                return None
         else:
             return False  # Не попали в карту
 
-    def on_click(self, cell_coords):
-        pass
+    def on_click(self, card):
+        card.on_click()
+
+        if self.faced_card:
+            if self.faced_card.text == card.text:  # TODO: Написать функцию сравнения Карт вместо
+                # сравнения текстов
+                self.faced_card.set_scored()
+                card.set_scored()
+                self.scores += 1
+            else:
+                card.on_click()
+                self.faced_card.on_click()
+            self.faced_card = None
+        else:
+            self.faced_card = card
 
     def get_click(self, mouse_pos):
         cell = self.get_cell(mouse_pos)
-        self.on_click(cell)
+        if cell:
+            self.on_click(cell)
