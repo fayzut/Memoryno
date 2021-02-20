@@ -4,9 +4,11 @@ from field import Board
 
 if __name__ == '__main__':
     pygame.init()
-    size = width, height = 600, 400
+    board = Board()
+    board.set_view(20, 10, 50, 50)
+    size = width, height = board.get_size()
     screen = pygame.display.set_mode(size)
-    board = Board()  # Сюда отпралять список карт
+
     running = True
     while running:
         for event in pygame.event.get():
@@ -15,6 +17,5 @@ if __name__ == '__main__':
             if event.type == pygame.MOUSEBUTTONDOWN:
                 board.get_click(event.pos)
         screen.fill((0, 0, 0))
-        if board.need_to_render:
-            board.render(screen)
+        board.render(screen)
         pygame.display.flip()

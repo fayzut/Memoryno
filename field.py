@@ -1,47 +1,67 @@
-import random
+import random, os
 
 import pygame
 
 STANDART_COLOR = (0, 255, 0)
 
 
-class Card:
-    def __init__(self, data, left=0, top=0, width=50, height=50):
+def load_image(name, folder='data', colorkey=None):
+    fullname = os.path.join(folder, name)
+    image = pygame.image.load(fullname).convert()
+    if colorkey is not None:
+        if colorkey == -1:
+            colorkey = image.get_at((0, 0))
+        image.set_colorkey(colorkey)
+    else:
+        image = image.convert_alpha()
+    return image
+
+
+class Card(pygame.sprite.Sprite):
+    def __init__(self, group, link, text):
+        super(Card, self).__init__(group)
         self.faced = False
-        self.pic = ''
-        self.text = data
-        self.left = left
-        self.top = top
-        self.width = width
-        self.height = height
-        self.border = 1
-        self.border_color = STANDART_COLOR
-        self.text_color = STANDART_COLOR
-        self.text_font = pygame.font.Font(None, 50)
+        self.pic = None
+        self.image = None
 
-    def draw(self, surfase=pygame.display.set_mode((1, 1)), x=0, y=0):
-        pygame.draw.rect(surfase, self.border_color, (x, y, self.width, self.height), 1)
-        if self.faced:
-            text = self.text_font.render(self.text, True, (100, 255, 100))
+        self.rect = pygame.Rect(0, 0, 50, 50)
+        self.text = text
+        if link:
+            self.pic = link
+            self.image = load_image(self.pic)
+            self.rect = self.image.get_rect()
         else:
-            text = self.text_font.render('X', True, (100, 255, 100))
-        text_x = x + (self.width - text.get_width()) // 2
-        text_y = y + (self.height - text.get_height()) // 2
-        surfase.blit(text, (text_x, text_y))
+            font = pygame.font.Font(None, 50)
+            self.image = font.render(self.text, True, (100, 255, 100))
+        self.back_image = pygame.font.Font(None, 50).render('X', True, (100, 255, 100))
 
-    def on_click(self):
-        self.faced = not self.faced
-
-    def set_scored(self):
-        self.faced = True
-        self.text = '+'
-
-    def blink(self):
-        old_color = self.text_color
-        self.text_color = (255, 10, 10)
-        start = pygame.time.Clock()
-        if start.tick(500):
-            self.text_color = old_color
+    # def set_pos(self, x, y):
+    #     self.left = x
+    #     self.top = y
+    #
+    def update(self, *args, **kwargs) -> None:  # (self, surface, border_color):
+        self.surface = kwargs['surface']
+        self.border_color = kwargs['border_color']
+        pygame.draw.rect(self.surface, self.border_color, self.rect, 1)
+        if self.faced:
+            self.surface.blit(self.image, self.rect.topleft)
+        else:
+            self.surface.blit(self.back_image, self.rect.topleft)
+    #
+    # def on_click(self):
+    #     self.faced = not self.faced
+    #
+    # def set_scored(self):
+    #     self.faced = True
+    #     self.text = '+'
+    #
+    # def blink(self):
+    #     old_color = self.text_color
+    #     self.text_color = (255, 10, 10)
+    #     start = pygame.time.Clock()
+    #     if start.tick(500):
+    #         self.text_color = old_color
+    #
 
 
 class Label:
@@ -67,42 +87,55 @@ class Label:
                                                               text_w + 20, text_h + 20), 1)
 
 
+class Field:
+    def __init__(self, cards, left=20, top=60, card_width=50,
+                 card_height=50):
+        self.left = left
+        self.top = top
+        self.card_width = card_width
+        self.card_height = card_height
+        self.cards = []
+        self.all_cards_group = pygame.sprite.Group()
+        for card in cards:
+            if type(card) is str:
+                self.cards.append(Card(self.all_cards_group, None, card))
+            elif type(card) is dict:
+                self.cards.append(Card(self.all_cards_group, card['link'], card['text']))
+            else:
+                raise TypeError
+        self.faced_card = None
+
+    def __len__(self):
+        return len(self.cards)
+
+
 class Board:
     # создание поля
-    def __init__(self, cards=range(10, 100), cards_to_use=14, left=20, top=60, cell_width=50,
-                 cell_height=50):
-        self.need_to_render = True
+    def __init__(self):
+        # self.need_to_render = True
         # значения по умолчанию
-        self.top = top
-        self.left = left
-        self.cell_width = cell_width
-        self.cell_height = cell_height
+        self.top = 0
+        self.left = 0
+        self.cell_width = 50
+        self.cell_height = 50
         self.cell_border_width = 1
-        self.set_view(self.left, self.top, self.cell_width, self.cell_height)
+        # self.set_view(self.left, self.top, self.cell_width, self.cell_height)
 
         self.field_line_color = STANDART_COLOR
         # Стандартные карточки - числа в массиве
         # генерация поля карточек
-        # cards = range(10, 100)  # список карточек для игры - TODO: объекты карточек Card
-        cards_data = random.choices(cards, k=cards_to_use)
-        cards_number = len(cards_data) * 2
-        self.field = []
-        height = int(cards_number ** 0.5)
-        width = cards_number // height
-        last_line_card_number = cards_number % height
-        for i in range(height):
-            self.field.append([-1] * width)
-        if last_line_card_number:
-            self.field.append([-1] * last_line_card_number)
-        cards_to_add = random.sample(cards_data * 2, k=len(cards_data) * 2)
-        k = 0
-        for row in range(len(self.field)):
-            for col in range(len(self.field[row])):
-                self.field[row][col] = Card(str(cards_to_add[k]))
-                k += 1
-
-        self.faced_card = None
+        # список карточек для игры - TODO: объекты карточек Card
+        cards_to_use = 14
+        cards_data = list(map(str, random.choices(range(10, 100), k=cards_to_use)))
+        cards_data = list(random.sample(cards_data * 2, cards_to_use * 2))
+        self.field = Field(cards_data)
         self.scores = 0
+
+    def get_size(self):
+        length = len(self.field)
+        board_height = int(length ** 0.5)
+        board_width = length // board_height + length % board_height
+        return board_width, board_height
 
     # настройка внешнего вида
     def set_view(self, left, top, cell_width, cell_height):
@@ -111,36 +144,38 @@ class Board:
         self.cell_width = cell_width
         self.cell_height = cell_height
 
-    def render(self, screen=pygame.display.set_mode((1, 1))):
-        screen.fill((0, 0, 0))
+    def render(self, surface):
+        self.surface = surface
+        self.surface.fill((0, 0, 0))
         # Надпись на экране игры
         font = pygame.font.Font(None, 50)
         text = font.render("Welcome to Memoryno!", True, (100, 255, 100))
-        text_x = screen.get_width() // 2 - text.get_width() // 2
+        text_x = self.surface.get_width() // 2 - text.get_width() // 2
         text_y = 10  # screen.get_height() // 2 - text.get_height() // 2
         text_w = text.get_width()
         text_h = text.get_height()
-        screen.blit(text, (text_x, text_y))
-        pygame.draw.rect(screen, (0, 255, 0), (text_x - 10, text_y - 10,
-                                               text_w + 20, text_h + 20), 1)
+        self.surface.blit(text, (text_x, text_y))
+        pygame.draw.rect(self.surface, (0, 255, 0), (text_x - 10, text_y - 10,
+                                                     text_w + 20, text_h + 20), 1)
         # КОНЕЦ Надпись на экране игры
         # Надписи счета
-        scores = Label(f'Счет: {self.scores}', screen, (screen.get_width() - 200, 100))
+        scores = Label(f'Счет: {self.scores}', self.surface, (self.surface.get_width() - 200, 100))
         scores.draw()
         # Конец Надписи счета
+        self.draw_field()
 
-        for row in range(len(self.field)):
-            for col in range(len(self.field[row])):
-                pygame.draw.rect(screen, self.field_line_color,
-                                 (self.left + self.cell_width * col,
-                                  self.top + self.cell_height * row,
-                                  self.cell_width + self.cell_border_width,
-                                  self.cell_height + self.cell_border_width
-                                  ), self.cell_border_width)
-                self.field[row][col].draw(screen, self.left + self.cell_width * col,
-                                          self.top + self.cell_height * row)
-
-        # self.need_to_render = False
+    def draw_field(self):
+        cards_number = len(self.field)
+        screen = self.surface
+        h = int(cards_number ** 0.5)
+        w = cards_number // h
+        # last_line_card_number = cards_number % h
+        for i in range(len(self.field)):
+            col = i % w
+            row = i // h
+            self.field.cards[i].rect.x = self.left + self.cell_width * col
+            self.field.cards[i].rect.y = self.top + self.cell_height * row
+        self.field.all_cards_group.update(surface=screen, border_color=self.field_line_color)
 
     def get_cell(self, mouse_pos):
         if self.left <= mouse_pos[0] <= self.cell_width * len(self.field[0]) + self.left and \
