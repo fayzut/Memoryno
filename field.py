@@ -23,37 +23,46 @@ class Card(pygame.sprite.Sprite):
         self.faced = False
         self.pic = None
         self.image = None
-
+        self.front_image = None
         self.rect = pygame.Rect(0, 0, 50, 50)
         self.text = text
         if link:
             self.pic = link
-            self.image = load_image(self.pic)
-            self.rect = self.image.get_rect()
+            self.front_image = load_image(self.pic)
+
         else:
             font = pygame.font.Font(None, 50)
-            self.image = font.render(self.text, True, (100, 255, 100))
+            self.front_image = font.render(self.text, True, (100, 255, 100))
         self.back_image = pygame.font.Font(None, 50).render('X', True, (100, 255, 100))
 
-    # def set_pos(self, x, y):
-    #     self.left = x
-    #     self.top = y
-    #
+    def is_same_with(self, other):
+        return self.text == other.text
+
+    def set_pos(self, x, y):
+        self.rect.x = x
+        self.rect.y = y
+
     def update(self, *args, **kwargs) -> None:  # (self, surface, border_color):
-        self.surface = kwargs['surface']
-        self.border_color = kwargs['border_color']
-        pygame.draw.rect(self.surface, self.border_color, self.rect, 1)
+        self.image = self.back_image
         if self.faced:
-            self.surface.blit(self.image, self.rect.topleft)
-        else:
-            self.surface.blit(self.back_image, self.rect.topleft)
-    #
-    # def on_click(self):
-    #     self.faced = not self.faced
-    #
-    # def set_scored(self):
-    #     self.faced = True
-    #     self.text = '+'
+            self.image = self.front_image
+        self.rect = self.image.get_rect()
+
+        # self.surface = kwargs['surface']
+        # self.border_color = kwargs['border_color']
+        # pygame.draw.rect(self.surface, self.border_color, self.rect, 1)
+        # if self.faced:
+        #     self.surface.blit(self.image, self.rect.topleft)
+        # else:
+        #     self.surface.blit(self.back_image, self.rect.topleft)
+
+    def on_click(self):
+        self.faced = not self.faced
+
+    def set_scored(self):
+        self.faced = True
+        self.border_color = pygame.Color('Green')
+
     #
     # def blink(self):
     #     old_color = self.text_color
@@ -85,6 +94,8 @@ class Label:
         if self.bordered:
             pygame.draw.rect(self.screen, self.border_color, (text_x - 10, text_y - 10,
                                                               text_w + 20, text_h + 20), 1)
+
+
 
 
 class Field:
@@ -131,11 +142,15 @@ class Board:
         self.field = Field(cards_data)
         self.scores = 0
 
-    def get_size(self):
+    def get_field_size(self):
         length = len(self.field)
         board_height = int(length ** 0.5)
         board_width = length // board_height + length % board_height
         return board_width, board_height
+
+    def get_size(self):
+        filed_size = self.get_field_size()
+        return filed_size[0] * self.cell_width, filed_size[1] * self.cell_height
 
     # настройка внешнего вида
     def set_view(self, left, top, cell_width, cell_height):
@@ -175,38 +190,38 @@ class Board:
             row = i // h
             self.field.cards[i].rect.x = self.left + self.cell_width * col
             self.field.cards[i].rect.y = self.top + self.cell_height * row
-        self.field.all_cards_group.update(surface=screen, border_color=self.field_line_color)
+        self.field.all_cards_group.draw(screen)
+        # self.field.all_cards_group.update()#surface=screen, border_color=self.field_line_color)
 
     def get_cell(self, mouse_pos):
-        if self.left <= mouse_pos[0] <= self.cell_width * len(self.field[0]) + self.left and \
+        if self.left <= mouse_pos[0] <= self.cell_width * len(self.field) + self.left and \
                 self.top <= mouse_pos[1] <= self.cell_height * len(self.field) + self.top:
             x = (mouse_pos[0] - self.left) // self.cell_width
             y = (mouse_pos[1] - self.top) // self.cell_height
-            try:
-                return self.field[y][x]
-            except:
+            k = x + y * self.get_field_size()[1]
+            if k < len(self.field):
+                return self.field.cards[k]
+            else:
                 return None
         else:
             return False  # Не попали в карту
 
     def on_click(self, card):
         card.on_click()
-
-        if self.faced_card:
-            if self.faced_card.text == card.text:  # TODO: Написать функцию сравнения Карт вместо
-                # сравнения текстов
-                self.faced_card.set_scored()
+        if self.field.faced_card:
+            if card.is_same_with(self.field.faced_card):
+                self.field.faced_card.set_scored()
                 card.set_scored()
                 self.scores += 1
             else:
-                pygame.time.delay(500)
-                card.blink()
-                self.faced_card.blink()
+                # card.blink()
+                # self.field.faced_card.blink()
                 card.on_click()
-                self.faced_card.on_click()
-            self.faced_card = None
+
+                self.field.faced_card.on_click()
+            self.field.faced_card = None
         else:
-            self.faced_card = card
+            self.field.faced_card = card
 
     def get_click(self, mouse_pos):
         cell = self.get_cell(mouse_pos)
