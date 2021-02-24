@@ -24,6 +24,15 @@ class SpriteLabel(pygame.sprite.Sprite):
         self.rect.y = y
 
 
+class plane:
+    def __init__(self):
+        self.spGr = pygame.sprite.Group()
+        self.label = SpriteLabel('LabelText', 150, 150, self.spGr)
+
+    def draw(self, screen):
+        self.spGr.draw(screen)
+
+
 if __name__ == '__main__':
     pygame.init()
     spriteGroup = pygame.sprite.Group()

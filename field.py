@@ -2,6 +2,8 @@ import random, os
 
 import pygame
 
+from my_sprites import SpriteLabel
+
 STANDART_COLOR = (0, 255, 0)
 
 
@@ -29,7 +31,6 @@ class Card(pygame.sprite.Sprite):
         if link:
             self.pic = link
             self.front_image = load_image(self.pic)
-
         else:
             font = pygame.font.Font(None, 50)
             self.front_image = font.render(self.text, True, (100, 255, 100))
@@ -74,28 +75,25 @@ class Card(pygame.sprite.Sprite):
 
 
 class Label:
-    def __init__(self, text, screen, coords, color=STANDART_COLOR, bordered=True,
+    def __init__(self, text, coords, color=STANDART_COLOR, bordered=True,
                  border_color=STANDART_COLOR):
         self.text = text
-        self.screen = screen
         self.coords = coords
         self.text_color = color
         self.bordered = bordered
         self.border_color = border_color
 
-    def draw(self):
+    def draw(self, screen):
         font = pygame.font.Font(None, 50)
         text = font.render(self.text, True, self.text_color)
         text_x = self.coords[0]
         text_y = self.coords[1]
         text_w = text.get_width()
         text_h = text.get_height()
-        self.screen.blit(text, (text_x, text_y))
+        screen.blit(text, (text_x, text_y))
         if self.bordered:
-            pygame.draw.rect(self.screen, self.border_color, (text_x - 10, text_y - 10,
-                                                              text_w + 20, text_h + 20), 1)
-
-
+            pygame.draw.rect(screen, self.border_color, (text_x - 10, text_y - 10,
+                                                         text_w + 20, text_h + 20), 1)
 
 
 class Field:
@@ -123,7 +121,6 @@ class Field:
 class Board:
     # создание поля
     def __init__(self):
-        # self.need_to_render = True
         # значения по умолчанию
         self.top = 0
         self.left = 0
@@ -131,6 +128,7 @@ class Board:
         self.cell_height = 50
         self.cell_border_width = 1
         # self.set_view(self.left, self.top, self.cell_width, self.cell_height)
+        self.sprites_group = pygame.sprite.Group()
 
         self.field_line_color = STANDART_COLOR
         # Стандартные карточки - числа в массиве
@@ -141,6 +139,7 @@ class Board:
         cards_data = list(random.sample(cards_data * 2, cards_to_use * 2))
         self.field = Field(cards_data)
         self.scores = 0
+        label = SpriteLabel("SpriteText", 100, 30, self.sprites_group)
 
     def get_field_size(self):
         length = len(self.field)
@@ -161,7 +160,13 @@ class Board:
 
     def render(self, surface):
         self.surface = surface
-        self.surface.fill((0, 0, 0))
+        # self.surface.fill((0, 0, 0))
+
+        # Надпись на экране игры Sprite
+        # label.draw(surface)
+        self.sprites_group.draw(surface)
+        # END Надпись на экране игры Sprite
+
         # Надпись на экране игры
         font = pygame.font.Font(None, 50)
         text = font.render("Welcome to Memoryno!", True, (100, 255, 100))
@@ -181,7 +186,7 @@ class Board:
 
     def draw_field(self):
         cards_number = len(self.field)
-        screen = self.surface
+        # screen = self.surface
         h = int(cards_number ** 0.5)
         w = cards_number // h
         # last_line_card_number = cards_number % h
@@ -190,7 +195,7 @@ class Board:
             row = i // h
             self.field.cards[i].rect.x = self.left + self.cell_width * col
             self.field.cards[i].rect.y = self.top + self.cell_height * row
-        self.field.all_cards_group.draw(screen)
+        # self.field.all_cards_group.draw(self.surface)
         # self.field.all_cards_group.update()#surface=screen, border_color=self.field_line_color)
 
     def get_cell(self, mouse_pos):
@@ -217,7 +222,6 @@ class Board:
                 # card.blink()
                 # self.field.faced_card.blink()
                 card.on_click()
-
                 self.field.faced_card.on_click()
             self.field.faced_card = None
         else:
