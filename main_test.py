@@ -8,7 +8,8 @@ if __name__ == '__main__':
     size = width, height = 300, 300
     screen = pygame.display.set_mode(size)
     sprites_group = pygame.sprite.Group()
-    board = my_sprites.plane()
+    label = my_sprites.SpriteLabel('Text', 50, 50, sprites_group)
+    card = my_sprites.Card('CardText', 'card.png', sprites_group)
     running = True
     while running:
         fpsClock.tick(FPS)
@@ -16,5 +17,5 @@ if __name__ == '__main__':
             if event.type == pygame.QUIT:
                 running = False
         screen.fill((0, 0, 0))
-        board.draw(screen)
+        sprites_group.draw(screen)
         pygame.display.flip()

@@ -2,76 +2,13 @@ import random, os
 
 import pygame
 
-from my_sprites import SpriteLabel
+from my_sprites import SpriteLabel, Card
 
 STANDART_COLOR = (0, 255, 0)
 
 
-def load_image(name, folder='data', colorkey=None):
-    fullname = os.path.join(folder, name)
-    image = pygame.image.load(fullname).convert()
-    if colorkey is not None:
-        if colorkey == -1:
-            colorkey = image.get_at((0, 0))
-        image.set_colorkey(colorkey)
-    else:
-        image = image.convert_alpha()
-    return image
 
 
-class Card(pygame.sprite.Sprite):
-    def __init__(self, group, link, text):
-        super(Card, self).__init__(group)
-        self.faced = False
-        self.pic = None
-        self.image = None
-        self.front_image = None
-        self.rect = pygame.Rect(0, 0, 50, 50)
-        self.text = text
-        if link:
-            self.pic = link
-            self.front_image = load_image(self.pic)
-        else:
-            font = pygame.font.Font(None, 50)
-            self.front_image = font.render(self.text, True, (100, 255, 100))
-        self.back_image = pygame.font.Font(None, 50).render('X', True, (100, 255, 100))
-
-    def is_same_with(self, other):
-        return self.text == other.text
-
-    def set_pos(self, x, y):
-        self.rect.x = x
-        self.rect.y = y
-
-    def update(self, *args, **kwargs) -> None:  # (self, surface, border_color):
-        self.image = self.back_image
-        if self.faced:
-            self.image = self.front_image
-        self.rect = self.image.get_rect()
-
-        # self.surface = kwargs['surface']
-        # self.border_color = kwargs['border_color']
-        # pygame.draw.rect(self.surface, self.border_color, self.rect, 1)
-        # if self.faced:
-        #     self.surface.blit(self.image, self.rect.topleft)
-        # else:
-        #     self.surface.blit(self.back_image, self.rect.topleft)
-
-    def on_click(self):
-        self.faced = not self.faced
-
-    def set_scored(self):
-        self.faced = True
-        self.border_color = pygame.Color('Green')
-
-    #
-    # def blink(self):
-    #     old_color = self.text_color
-    #     self.text_color = (255, 10, 10)
-    #     start = pygame.time.Clock()
-    #     if start.tick(500):
-    #         self.text_color = old_color
-    #
 
 
 class Label:
