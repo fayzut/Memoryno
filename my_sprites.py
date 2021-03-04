@@ -94,7 +94,11 @@ class SpriteField(pygame.sprite.Sprite):
         self.card_height = 60
 
     def cards_generation(self, folder):
-        print(os.listdir(path="."))
+        cards_list = []
+        for filename in os.listdir(path=folder):
+            new_card = Card('1', filename, *self.groups())
+            cards_list.append(new_card)
+        return cards_list
 
     def get_field_table_size(self):
         """Размеры таблицы для карточек"""
@@ -115,3 +119,6 @@ class SpriteField(pygame.sprite.Sprite):
         """Установить позицию поля"""
         self.rect.x = x
         self.rect.y = y
+
+
+

@@ -1,13 +1,17 @@
 import os
-from my_sprites import load_image
+
+import pygame
+
+from my_sprites import Card
 
 
-def cards_generation(folder):
-    for filename in os.listdir(path=folder):
-        try:
-            image = load_image(filename, folder)
-        except Exception as exeption:
-            print(f"The {filename} is not an image\n Or {exeption} occured")
 
 
-cards_generation('data')
+
+pygame.init()
+FPS = 30
+fpsClock = pygame.time.Clock()
+size = width, height = 300, 300
+screen = pygame.display.set_mode(size)
+ready_cards, ready_group = cards_generation('data')
+print('DONE')
