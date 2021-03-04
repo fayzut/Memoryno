@@ -1,6 +1,7 @@
 import os
 
 import pygame
+from pygame.sprite import AbstractGroup
 
 
 def load_image(name, folder='data', colorkey=None):
@@ -18,7 +19,6 @@ def load_image(name, folder='data', colorkey=None):
 class SpriteLabel(pygame.sprite.Sprite):
     def __init__(self, text, x, y, *groups):
         self.border_inner = 10
-        # Надпись на экране игры
         super().__init__(*groups)
         font = pygame.font.Font(None, 50)
         text_image = font.render(text, True, (100, 255, 100))
@@ -86,10 +86,32 @@ class Card(pygame.sprite.Sprite):
     #
 
 
-class plane:
-    def __init__(self):
-        self.spGr = pygame.sprite.Group()
-        self.label = SpriteLabel('LabelText', 150, 150, self.spGr)
+class SpriteField(pygame.sprite.Sprite):
+    def __init__(self, *groups: AbstractGroup):
+        super().__init__(*groups)
+        self.cards = []
+        self.card_width = 50
+        self.card_height = 60
 
-    def draw(self, screen):
-        self.spGr.draw(screen)
+    def cards_generation(self, folder):
+        print(os.listdir(path="."))
+
+    def get_field_table_size(self):
+        """Размеры таблицы для карточек"""
+        length = len(self.cards)
+        table_height = int(length ** 0.5)
+        table_width = length // table_height + length % table_height
+        return table_width, table_height
+
+    def get_size(self):
+        """Размеры поля с карточками"""
+        field_table_size = self.get_field_table_size()
+        return field_table_size[0] * self.card_width, field_table_size[1] * self.card_height
+
+    def update(self, *args, **kwargs) -> None:
+        pass
+
+    def set_pos(self, x, y):
+        """Установить позицию поля"""
+        self.rect.x = x
+        self.rect.y = y
