@@ -6,6 +6,7 @@ from pygame.sprite import AbstractGroup
 CARD_WIDTH = 70
 CARD_HEIGHT = 80
 
+
 def load_image(name, folder='data', colorkey=None):
     fullname = os.path.join(folder, name)
     image = pygame.image.load(fullname).convert()
@@ -42,7 +43,7 @@ class SpriteLabel(pygame.sprite.Sprite):
 class Card(pygame.sprite.Sprite):
     def __init__(self, text, link, *groups):
         super().__init__(*groups)
-        self.faced = True
+        self.faced = False
         self.pic = None
         self.image = None
         self.pos = 0, 0
@@ -50,13 +51,14 @@ class Card(pygame.sprite.Sprite):
         self.size = CARD_WIDTH, CARD_HEIGHT
         self.rect = pygame.Rect(*self.pos, *self.size)
         self.text = text
-        font = pygame.font.Font(None, 50)
+        font = pygame.font.Font(None, CARD_WIDTH * 2)
         if link:
             self.pic = link
             self.front_image = pygame.transform.scale(load_image(self.pic), self.size)
         else:
             self.front_image = font.render(self.text, True, (100, 255, 100))
         self.back_image = font.render('X', True, (100, 255, 100))
+
         self.update()
 
     def is_same_with(self, other):
@@ -102,28 +104,23 @@ class SpriteField(pygame.sprite.Sprite):
         self.card_width = CARD_WIDTH
         self.card_height = CARD_HEIGHT
         width, height = self.get_size()
-        self.image = pygame.Surface([width + 10, height + 10])
+        extra_borders_x = 5 * 2 + 2 * (self.get_field_table_size()[0] - 1)
+        extra_borders_y = 5 * 2 + 2 * (self.get_field_table_size()[1] - 1)
+        self.image = pygame.Surface([width + extra_borders_x, height + extra_borders_y])
         self.image.fill('Yellow')
         self.rect = self.image.get_rect()
         self.set_pos(5, 5)
         self.cards_positioning()
-        self.groups()[0].update()
 
-    def cards_positioning(self): #WRONG POSITIONING!!!!
-        cards_number = len(self.cards)
+    def cards_positioning(self):
         w, h = self.get_field_table_size()
-        # h = int(cards_number ** 0.5)
-        # w = cards_number // h
-        k = 0
         for i in range(len(self.cards)):
             col = i % w
-            row = i // h
-            x = 5 + self.card_width * col
-            y = 5 + self.card_height * row
+            row = i // w
+            x = 5 + self.card_width * col + 2 * col
+            y = 5 + self.card_height * row + 2 * row
             self.cards[i].set_pos(x, y)
-            self.image.blit(self.cards[i].image, (x, y))
-            # pygame.image.save(self.image, f'Step - {k}.png')
-            # k += 1
+        self.cards_group.draw(self.image)
 
     def cards_generation(self, folder):
         cards_list = []
@@ -132,7 +129,8 @@ class SpriteField(pygame.sprite.Sprite):
             new_card2 = Card(str(len(cards_list)), filename, self.cards_group)
             cards_list.append(new_card1)
             cards_list.append(new_card2)
-        return cards_list
+        import random
+        return list(random.sample(cards_list, len(cards_list)))
 
     def get_field_table_size(self):
         """Размеры таблицы для карточек"""
@@ -146,8 +144,8 @@ class SpriteField(pygame.sprite.Sprite):
         field_table_size = self.get_field_table_size()
         return field_table_size[0] * self.card_width, field_table_size[1] * self.card_height
 
-    # def update(self, *args, **kwargs) -> None:
-    #     pass
+    def update(self, *args, **kwargs) -> None:
+        pass
 
     def set_pos(self, x, y):
         """Установить позицию поля"""
