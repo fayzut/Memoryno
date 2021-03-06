@@ -33,7 +33,6 @@ class SpriteLabel(pygame.sprite.Sprite):
         pygame.draw.rect(self.image, (0, 255, 0), (0, 0, text_w + d * 2, text_h + d * 2), 1)
         self.rect = self.image.get_rect()
         self.move_to(x, y)
-        # КОНЕЦ Надпись на экране игры
 
     def move_to(self, x, y):
         self.rect.x = x
@@ -43,7 +42,7 @@ class SpriteLabel(pygame.sprite.Sprite):
 class Card(pygame.sprite.Sprite):
     def __init__(self, text, link, *groups):
         super().__init__(*groups)
-        self.faced = False
+        self.faced = True
         self.pic = None
         self.image = None
         self.pos = 0, 0
@@ -72,7 +71,7 @@ class Card(pygame.sprite.Sprite):
     def get_pos(self):
         return self.pos
 
-    def update(self, *args, **kwargs) -> None:  # (self, surface, border_color):
+    def update(self, *args, **kwargs) -> None:
         self.image = self.back_image
         if self.faced:
             self.image = self.front_image
@@ -81,6 +80,7 @@ class Card(pygame.sprite.Sprite):
 
     def on_click(self):
         self.faced = not self.faced
+        self.update()
 
     def set_scored(self):
         self.faced = True
@@ -144,10 +144,24 @@ class SpriteField(pygame.sprite.Sprite):
         field_table_size = self.get_field_table_size()
         return field_table_size[0] * self.card_width, field_table_size[1] * self.card_height
 
-    def update(self, *args, **kwargs) -> None:
-        pass
+    # def update(self, *args, **kwargs) -> None:
+    #     pass
 
     def set_pos(self, x, y):
         """Установить позицию поля"""
         self.rect.x = x
         self.rect.y = y
+
+    def on_click(self, mouse_pos):
+        print(*mouse_pos)
+        pos = mouse_pos[0] - self.rect.x, mouse_pos[1] - self.rect.y
+        # print(f"Pos in table {pos[0]}, {pos[1]}")
+        x = (pos[0]) // self.card_width
+        y = (pos[1]) // self.card_height
+        # print(f"coords in table - {x} {y}")
+        k = x + y * self.get_field_table_size()[0]
+        if k < len(self.cards):
+            # print(f"Card number - {k}")
+            self.cards[k].on_click()
+        else:
+            return None
