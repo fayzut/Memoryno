@@ -42,7 +42,7 @@ class SpriteLabel(pygame.sprite.Sprite):
 class Card(pygame.sprite.Sprite):
     def __init__(self, text, link, *groups):
         super().__init__(*groups)
-        self.faced = True
+        self.faced = False
         self.pic = None
         self.image = None
         self.pos = 0, 0
@@ -107,7 +107,6 @@ class SpriteField(pygame.sprite.Sprite):
         extra_borders_x = 5 * 2 + 2 * (self.get_field_table_size()[0] - 1)
         extra_borders_y = 5 * 2 + 2 * (self.get_field_table_size()[1] - 1)
         self.image = pygame.Surface([width + extra_borders_x, height + extra_borders_y])
-        self.image.fill('Yellow')
         self.rect = self.image.get_rect()
         self.set_pos(5, 5)
         self.cards_positioning()
@@ -120,7 +119,7 @@ class SpriteField(pygame.sprite.Sprite):
             x = 5 + self.card_width * col + 2 * col
             y = 5 + self.card_height * row + 2 * row
             self.cards[i].set_pos(x, y)
-        self.cards_group.draw(self.image)
+        self.update()
 
     def cards_generation(self, folder):
         cards_list = []
@@ -144,8 +143,9 @@ class SpriteField(pygame.sprite.Sprite):
         field_table_size = self.get_field_table_size()
         return field_table_size[0] * self.card_width, field_table_size[1] * self.card_height
 
-    # def update(self, *args, **kwargs) -> None:
-    #     pass
+    def update(self, *args, **kwargs) -> None:
+        self.image.fill('Yellow')
+        self.cards_group.draw(self.image)
 
     def set_pos(self, x, y):
         """Установить позицию поля"""

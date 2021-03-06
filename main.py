@@ -18,5 +18,6 @@ while running:
         if event.type == pygame.MOUSEBUTTONDOWN:
             field.on_click(event.pos)
     screen.fill((0, 0, 0))
+    field.update()
     sprites_group.draw(screen)
     pygame.display.flip()
