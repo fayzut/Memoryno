@@ -86,15 +86,6 @@ class Card(pygame.sprite.Sprite):
         self.faced = True
         self.border_color = pygame.Color('Green')
 
-    #
-    # def blink(self):
-    #     old_color = self.text_color
-    #     self.text_color = (255, 10, 10)
-    #     start = pygame.time.Clock()
-    #     if start.tick(500):
-    #         self.text_color = old_color
-    #
-
 
 class SpriteField(pygame.sprite.Sprite):
     def __init__(self, *groups: AbstractGroup, folder='data'):
@@ -160,8 +151,9 @@ class SpriteField(pygame.sprite.Sprite):
         y = (pos[1]) // self.card_height
         # print(f"coords in table - {x} {y}")
         k = x + y * self.get_field_table_size()[0]
-        if k < len(self.cards):
+        if 0 <= k < len(self.cards):
             # print(f"Card number - {k}")
             self.cards[k].on_click()
+            return self.cards[k]
         else:
             return None
