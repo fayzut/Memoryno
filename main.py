@@ -18,6 +18,12 @@ def check_faced_cards(new_card):
         faced_cards.clear()
 
 
+def redraw(surface):
+    surface.fill((0, 0, 0))
+    field.update()
+    sprites_group.draw(surface)
+    pygame.display.flip()
+
 
 pygame.init()
 FPS = 30
@@ -36,8 +42,6 @@ while running:
             running = False
         if event.type == pygame.MOUSEBUTTONDOWN:
             clicked_card = field.on_click(event.pos)
+            redraw(screen)
             check_faced_cards(clicked_card)
-    screen.fill((0, 0, 0))
-    field.update()
-    sprites_group.draw(screen)
-    pygame.display.flip()
+    redraw(screen)
