@@ -3,13 +3,14 @@ import sys
 
 from PyQt5 import uic  # Импортируем uic
 from PyQt5.QtWidgets import QApplication, QMainWindow, QSpinBox, QLineEdit, QLabel, QFileDialog
+from start_window import Ui_MainWindow
 
-
-class StartWindow(QMainWindow):
+class StartWindow(QMainWindow, Ui_MainWindow):
     def __init__(self):
         super().__init__()
         # self.players_number_spinBox = QSpinBox()
-        uic.loadUi('start_window.ui', self)
+        # uic.loadUi('start_window.ui', self)
+        self.setupUi(self)
         self.players_names = [self.player1_name, self.player2_name,
                               self.player3_name, self.player4_name]
         self.players_number_spinBox.textChanged.connect(self.players_number_change)
@@ -52,11 +53,17 @@ class StartWindow(QMainWindow):
     def start_game(self):
         import json
         game_params = {
-            'players_number': self.players_number_spinBox.text,
-            for i in range(int(self.players_number_spinBox.text)):
-                'player_{i}_name': self.players_names[i].text
-
+            'players_number': self.players_number_spinBox.text(),
+            'player1_name': self.player1_name.text(),
+            'player2_name': self.player2_name.text(),
+            'player3_name': self.player3_name.text(),
+            'player4_name': self.player4_name.text(),
+            'folder':  self.folderName_Edit.text()
         }
+        print(game_params)
+        with open(self.folderName_Edit.text()+'\\game.json', 'w') as file:
+            json.dump(game_params, file, ensure_ascii=False, indent=2)
+
 
 
 def except_hook(cls, exception, traceback):
@@ -69,3 +76,5 @@ def main():
     ex.show()
     sys.excepthook = except_hook
     sys.exit(app.exec_())
+
+main()
