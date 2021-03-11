@@ -5,6 +5,7 @@ from pygame.sprite import AbstractGroup
 
 CARD_WIDTH = 70
 CARD_HEIGHT = 80
+DEFAULT_COLOR = (100, 255, 100)
 
 
 def load_image(name, folder='data', colorkey=None):
@@ -23,20 +24,42 @@ class SpriteLabel(pygame.sprite.Sprite):
     def __init__(self, text, x, y, *groups):
         self.border_inner = 10
         super().__init__(*groups)
-        font = pygame.font.Font(None, 50)
-        text_image = font.render(text, True, (100, 255, 100))
+        self.font = pygame.font.Font(None, 50)
+        self.text_to_screen = text
+        self.x = x
+        self.y = y
+        self.color = DEFAULT_COLOR
+        self.refresh()
+
+    def set_color(self, color):
+        self.color = color
+        self.refresh()
+
+    def refresh(self):
+        text_image = self.font.render(self.text_to_screen, True, self.color)
         text_w = text_image.get_width()
         text_h = text_image.get_height()
         d = self.border_inner
         self.image = pygame.Surface([text_w + d * 2, text_h + d * 2])
         self.image.blit(text_image, (d, d, text_w, text_h))
-        pygame.draw.rect(self.image, (0, 255, 0), (0, 0, text_w + d * 2, text_h + d * 2), 1)
+        pygame.draw.rect(self.image, self.color, (0, 0, text_w + d * 2, text_h + d * 2), 1)
         self.rect = self.image.get_rect()
-        self.move_to(x, y)
+        self.move_to(self.x, self.y)
 
     def move_to(self, x, y):
         self.rect.x = x
         self.rect.y = y
+
+
+class Player(SpriteLabel):
+    def __init__(self, name, score, x=200, y=50, *groups):
+        self.name = name
+        self.score = score
+        super().__init__(f'{name}: {score}', x, y, *groups)
+
+    def add_score(self, point):
+        self.score += point
+        self.refresh()
 
 
 class Card(pygame.sprite.Sprite):
@@ -114,7 +137,8 @@ class SpriteField(pygame.sprite.Sprite):
 
     def cards_generation(self, folder):
         cards_list = []
-        for filename in os.listdir(path=folder):
+        for filename in filter(lambda s: s.split('.')[-1].lower() == 'png',
+                               os.listdir(path=folder)):
             new_card1 = Card(str(len(cards_list)), filename, self.cards_group)
             new_card2 = Card(str(len(cards_list)), filename, self.cards_group)
             cards_list.append(new_card1)
@@ -145,15 +169,16 @@ class SpriteField(pygame.sprite.Sprite):
 
     def on_click(self, mouse_pos):
         print(*mouse_pos)
-        pos = mouse_pos[0] - self.rect.x, mouse_pos[1] - self.rect.y
-        # print(f"Pos in table {pos[0]}, {pos[1]}")
-        x = (pos[0]) // self.card_width
-        y = (pos[1]) // self.card_height
-        # print(f"coords in table - {x} {y}")
-        k = x + y * self.get_field_table_size()[0]
-        if 0 <= k < len(self.cards):
-            # print(f"Card number - {k}")
-            self.cards[k].on_click()
-            return self.cards[k]
-        else:
-            return None
+        if self.rect.x < mouse_pos[0] < self.rect.x + self.rect.width and \
+                self.rect.y < mouse_pos[1] < self.rect.y + self.rect.height:
+            pos = mouse_pos[0] - self.rect.x, mouse_pos[1] - self.rect.y
+            # print(f"Pos in table {pos[0]}, {pos[1]}")
+            x = (pos[0]) // self.card_width
+            y = (pos[1]) // self.card_height
+            # print(f"coords in table - {x} {y}")
+            k = x + y * self.get_field_table_size()[0]
+            if 0 <= k < len(self.cards):
+                # print(f"Card number - {k}")
+                self.cards[k].on_click()
+                return self.cards[k]
+        return None

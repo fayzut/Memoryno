@@ -5,6 +5,7 @@ from PyQt5 import uic  # Импортируем uic
 from PyQt5.QtWidgets import QApplication, QMainWindow, QSpinBox, QLineEdit, QLabel, QFileDialog
 from start_window import Ui_MainWindow
 
+
 class StartWindow(QMainWindow, Ui_MainWindow):
     def __init__(self):
         super().__init__()
@@ -54,16 +55,16 @@ class StartWindow(QMainWindow, Ui_MainWindow):
         import json
         game_params = {
             'players_number': self.players_number_spinBox.text(),
-            'player1_name': self.player1_name.text(),
-            'player2_name': self.player2_name.text(),
-            'player3_name': self.player3_name.text(),
-            'player4_name': self.player4_name.text(),
-            'folder':  self.folderName_Edit.text()
+            'player_names': [self.player1_name.text(),
+                             self.player2_name.text(),
+                             self.player3_name.text(),
+                             self.player4_name.text()],
+            'folder': self.folderName_Edit.text()
         }
-        print(game_params)
-        with open(self.folderName_Edit.text()+'\\game.json', 'w') as file:
+        # print(game_params)
+        with open('game.json', 'w') as file:
             json.dump(game_params, file, ensure_ascii=False, indent=2)
-
+        self.close()
 
 
 def except_hook(cls, exception, traceback):
@@ -75,6 +76,8 @@ def main():
     ex = StartWindow()
     ex.show()
     sys.excepthook = except_hook
-    sys.exit(app.exec_())
+    return app.exec_()
 
-main()
+
+if __name__ == '__main__':
+    main()
