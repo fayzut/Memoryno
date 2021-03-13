@@ -29,6 +29,11 @@ class SpriteLabel(pygame.sprite.Sprite):
         self.x = x
         self.y = y
         self.color = DEFAULT_COLOR
+        self.border_width = 1
+        self.refresh()
+
+    def set_font(self, new_font: pygame.font.Font):
+        self.font = new_font
         self.refresh()
 
     def set_color(self, color):
@@ -42,23 +47,38 @@ class SpriteLabel(pygame.sprite.Sprite):
         d = self.border_inner
         self.image = pygame.Surface([text_w + d * 2, text_h + d * 2])
         self.image.blit(text_image, (d, d, text_w, text_h))
-        pygame.draw.rect(self.image, self.color, (0, 0, text_w + d * 2, text_h + d * 2), 1)
+        pygame.draw.rect(self.image, self.color, (0, 0, text_w + d * 2, text_h + d * 2),
+                         self.border_width)
         self.rect = self.image.get_rect()
         self.move_to(self.x, self.y)
 
     def move_to(self, x, y):
-        self.rect.x = x
-        self.rect.y = y
+        self.rect.x = self.x = x
+        self.rect.y = self.y = y
+
+    def set_text(self, new_text: str):
+        self.text_to_screen = new_text
+        self.refresh()
 
 
 class Player(SpriteLabel):
     def __init__(self, name, score, x=200, y=50, *groups):
         self.name = name
         self.score = score
-        super().__init__(f'{name}: {score}', x, y, *groups)
+        super().__init__(f'{self.name}: {self.score}', x, y, *groups)
+        self.add_score(0)
 
     def add_score(self, point):
         self.score += point
+        self.text_to_screen = f'{self.name}: {self.score}'
+        self.refresh()
+
+    def set_current(self):
+        self.border_width = 5
+        self.refresh()
+
+    def unset_current(self):
+        self.border_width = 1
         self.refresh()
 
 
