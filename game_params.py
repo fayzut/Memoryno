@@ -1,16 +1,14 @@
-import os
 import sys
+import json
 
-from PyQt5 import uic  # Импортируем uic
-from PyQt5.QtWidgets import QApplication, QMainWindow, QSpinBox, QLineEdit, QLabel, QFileDialog
+from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog
 from start_window import Ui_MainWindow
 
 
 class StartWindow(QMainWindow, Ui_MainWindow):
+    # Класс окно настроек игры: количество игроков, папка с картинками
     def __init__(self):
         super().__init__()
-        # self.players_number_spinBox = QSpinBox()
-        # uic.loadUi('start_window.ui', self)
         self.setupUi(self)
         self.players_names = [self.player1_name, self.player2_name,
                               self.player3_name, self.player4_name]
@@ -19,8 +17,7 @@ class StartWindow(QMainWindow, Ui_MainWindow):
         self.start_game_Btn.clicked.connect(self.start_game)
 
     def players_number_change(self):
-        # self.label_2 = QLabel()
-        # self.player2_name = QLineEdit()
+        # изменение количества игроков - возможность вбить имена игроков
         self.label_2.setEnabled(True)
         self.player2_name.setEnabled(True)
         self.label_3.setEnabled(True)
@@ -45,6 +42,7 @@ class StartWindow(QMainWindow, Ui_MainWindow):
         self.update()
 
     def open_folder(self):
+        # диалоговое окно открытия папки
         dialog = QFileDialog()
         dialog.setFileMode(QFileDialog.DirectoryOnly)
         dialog.setOption(QFileDialog.ShowDirsOnly)
@@ -52,7 +50,7 @@ class StartWindow(QMainWindow, Ui_MainWindow):
             self.folderName_Edit.setText(dialog.selectedFiles()[0])
 
     def start_game(self):
-        import json
+        # Запись выбранных параметров в json-файл
         game_params = {
             'players_number': self.players_number_spinBox.text(),
             'player_names': [self.player1_name.text(),

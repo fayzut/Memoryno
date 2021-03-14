@@ -6,6 +6,7 @@ import game_params
 
 
 class GamePlayers:
+    # Класс игроков: спрайты для отображения имен и счета, текущий игрок, переход хода
     def __init__(self, parameters, group):
         self.current_player = 0
         self.players_sprites = []
@@ -18,25 +19,31 @@ class GamePlayers:
                                              (self.players_sprites[-1].rect.height + 5) * i + 10)
 
     def next(self):
+        # Переход хода
         self.current_player = (self.current_player + 1) % len(self.players_sprites)
         for player in self.players_sprites:
             player.unset_current()
         self.players_sprites[self.current_player].set_current()
 
     def current(self):
+        # Возвращаем текущего игрока
         return self.players_sprites[self.current_player]
 
     def add_score(self, point):
+        # Добавление балллов текущему игроку
         self.players_sprites[self.current_player].add_score(point)
 
 
 def check_faced_cards(new_card):
+    # Проверка на правильную пару карты
     global game_is_over
     if not faced_cards:
+        # нет открытой карты
         faced_cards.append(new_card)
     else:
+        # есть открытая карта
         if new_card.is_same_with(faced_cards[0]):
-            print('SAME!!!')
+            # print('SAME!!!')
             pygame.time.wait(500)
             players.add_score(1)
             # print(f'Scored for {players.current().name}!!!')
@@ -44,7 +51,7 @@ def check_faced_cards(new_card):
                 game_over(get_winners(), screen)
                 game_is_over = True
         else:
-            print('DIFFERENT')
+            # print('DIFFERENT')
             pygame.time.wait(500)
             new_card.on_click()
             faced_cards[0].on_click()
@@ -54,12 +61,14 @@ def check_faced_cards(new_card):
 
 
 def get_winners():
+    # Подведение итогов - возможно несколько победителей
     max_score = max(map(lambda player: player.score, players.players_sprites))
     return list(map(lambda player: player.name,
                     (filter(lambda player: player.score == max_score, players.players_sprites))))
 
 
 def redraw(surface):
+    # Обновление окна
     surface.fill((0, 0, 0))
     field.update()
     sprites_group.draw(surface)
@@ -71,10 +80,12 @@ def read_params():
 
 
 def check_end_of_game(game_field: my_sprites.SpriteField):
+    # Проверка на открытие всех карт - завершение игры
     return all(map(lambda card: card.faced, game_field.cards))
 
 
 def game_over(winners, surface: pygame.Surface):
+    # Конец игры - вывод результатов
     font = pygame.font.Font(None, 100)
     color = 'red'
     surface.fill('black')
@@ -92,8 +103,10 @@ def game_over(winners, surface: pygame.Surface):
                        height // 2 + over_label.image.get_height())
 
 
+# Запуск окна параметров игры затем считываем их здесь
 game_params.main()
 params = read_params()
+# Подготовка основного действия
 pygame.init()
 FPS = 30
 fpsClock = pygame.time.Clock()
@@ -111,7 +124,7 @@ faced_cards = []
 field.set_pos(30, 20)
 running = True
 game_is_over = False
-
+# Начинаем играть
 while running:
     fpsClock.tick(FPS)
     for event in pygame.event.get():

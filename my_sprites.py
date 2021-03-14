@@ -21,6 +21,7 @@ def load_image(name, folder='data', colorkey=None):
 
 
 class SpriteLabel(pygame.sprite.Sprite):
+    # Надпись - текст в определенном месте экрана
     def __init__(self, text, x, y, *groups):
         self.border_inner = 10
         super().__init__(*groups)
@@ -62,6 +63,8 @@ class SpriteLabel(pygame.sprite.Sprite):
 
 
 class Player(SpriteLabel):
+    # Игрок - наследуется от надписи, добавляются имя, баллы, выделение во время хода
+    # а так же обработка этих событий
     def __init__(self, name, score, x=200, y=50, *groups):
         self.name = name
         self.score = score
@@ -83,6 +86,7 @@ class Player(SpriteLabel):
 
 
 class Card(pygame.sprite.Sprite):
+    # Карта с картинкой или текстом, "переворачивание" карты
     def __init__(self, text, link, *groups):
         super().__init__(*groups)
         self.faced = False
@@ -131,6 +135,7 @@ class Card(pygame.sprite.Sprite):
 
 
 class SpriteField(pygame.sprite.Sprite):
+    # Основной класс поля игры, обработка нажатия на поле - передача нажатия в Карту
     def __init__(self, *groups: AbstractGroup, folder='data'):
         super().__init__(*groups)
         self.cards_group = pygame.sprite.Group()
@@ -159,8 +164,8 @@ class SpriteField(pygame.sprite.Sprite):
         cards_list = []
         for filename in filter(lambda s: s.split('.')[-1].lower() == 'png',
                                os.listdir(path=folder)):
-            new_card1 = Card(str(len(cards_list)), filename, self.cards_group)
-            new_card2 = Card(str(len(cards_list)), filename, self.cards_group)
+            new_card1 = Card(str(len(cards_list)), folder + '/' + filename, self.cards_group)
+            new_card2 = Card(str(len(cards_list)), folder + '/' + filename, self.cards_group)
             cards_list.append(new_card1)
             cards_list.append(new_card2)
         import random
@@ -188,7 +193,8 @@ class SpriteField(pygame.sprite.Sprite):
         self.rect.y = y
 
     def on_click(self, mouse_pos):
-        print(*mouse_pos)
+        # обработка нажатия на поле - передача нажатия в Карту
+        # print(*mouse_pos)
         if self.rect.x < mouse_pos[0] < self.rect.x + self.rect.width and \
                 self.rect.y < mouse_pos[1] < self.rect.y + self.rect.height:
             pos = mouse_pos[0] - self.rect.x, mouse_pos[1] - self.rect.y
